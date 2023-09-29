@@ -23,10 +23,12 @@ To train the model, run `train.py` with the desired configuration files and comm
 ## Paper
 If you find this work useful, please consider citing:
 ```
-@InProceedings{Kloepfer2023iccv,
-author       = "Kloepfer, Dominik A., and Campbell, Dylan, and Henriques, Jo\~ao F.",
-title        = "LoCUS: Learning Multiscale 3D-consistent Features from Posed Images",
-booktitle    = "International Conference on Computer Vision (ICCV)",
-year         = "2023",
+@InProceedings{Kloepfer_2023_ICCV,
+    author    = {Kloepfer, Dominik A. and Campbell, Dylan and Henriques, Jo\~ao F.},
+    title     = {LoCUS: Learning Multiscale 3D-consistent Features from Posed Images},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2023},
+    pages     = {16634-16644}
 }
 ```
