@@ -21,7 +21,7 @@ class MatterportDataset(torch.utils.data.Dataset):
         mode="train",
         pose_dir=None,
         augment_fn=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
 
@@ -36,7 +36,10 @@ class MatterportDataset(torch.utils.data.Dataset):
             self.normalize = transforms.Normalize(
                 (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
             )  # for backbones pretrained on ImageNet
-
+        else:
+            raise NotImplementedError(
+                f"Image normalization {kwargs['normalize']} not implemented."
+            )
         self.img_height = kwargs.get("img_height", 1024)
         self.img_width = kwargs.get("img_width", 1024)
         self.downsampling_factor = self.img_height / 1024
@@ -142,8 +145,6 @@ class MatterportDataset(torch.utils.data.Dataset):
         return len(self.data_dict)
 
     def __getitem__(self, index):
-        if index not in self.data_dict:
-            breakpoint()
         img_path = self.data_dict[index]["img_path"]
         depth_path = self.data_dict[index]["depth_path"]
         world_to_cam_pose = self.data_dict[index]["world_to_cam_pose"]

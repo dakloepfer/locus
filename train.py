@@ -1,4 +1,3 @@
-import math
 import argparse
 import pprint
 import torch
@@ -43,7 +42,7 @@ def parse_args():
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="/data/locus_logs",
+        default="locus_logs/train",
     )
     parser.add_argument("--exp_name", type=str, default="default_exp_name")
     parser.add_argument("--device_list", type=int, nargs="+", default=None)

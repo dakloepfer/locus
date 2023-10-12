@@ -3,10 +3,10 @@ from yacs.config import CfgNode as CN
 _CN = CN()
 
 ############### MODEL ###############
-_CN.MODEL_TYPE = "dino"
 
 _CN.MODEL = CN()
 
+_CN.MODEL.TYPE = "dino"
 _CN.MODEL.N_PRETRAINED_BLOCKS = 11  # number of pretrained DINO blocks
 _CN.MODEL.VIT_BACKBONE = "vitb8"
 

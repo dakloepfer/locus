@@ -3,9 +3,9 @@ from yacs.config import CfgNode as CN
 cfg = CN()
 
 ############### MODEL ###############
-cfg.MODEL_TYPE = "dino"
 
 cfg.MODEL = CN()
+cfg.MODEL.TYPE = "dino"
 
 cfg.MODEL.N_PRETRAINED_BLOCKS = 11  # number of pretrained DINO blocks
 cfg.MODEL.VIT_BACKBONE = "vitb8"

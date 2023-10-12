@@ -3,7 +3,7 @@ from yacs.config import CfgNode as CN
 cfg = CN()
 ############### DATA ###############
 cfg.DATASET = CN()
-BASE_PATH = "/data/matterport3d"
+BASE_PATH = "./matterport3d"
 
 cfg.DATASET.TRAIN_DATA_SOURCE = "Matterport"
 cfg.DATASET.VAL_DATA_SOURCE = "Matterport"

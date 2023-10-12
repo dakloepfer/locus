@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 data/*
+locus_logs/*
+pretrained_weights/*

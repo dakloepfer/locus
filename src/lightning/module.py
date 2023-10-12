@@ -13,21 +13,26 @@ from kornia.utils import create_meshgrid
 from einops import rearrange, repeat, reduce
 
 from src.models.dino_feature_extractor import DINO_FeatureExtractor
+from src.models.baselines import DINO_Baseline, ResNet50Baseline
 from src.losses.vec_smooth_ap import VecSmoothAP
 from src.utils.misc import batched_2d_index_select
 from src.utils.profiler import PassThroughProfiler
 
 
 class PLModule(pl.LightningModule):
-    def __init__(self, config, ckpt_path=None, devices=[], profiler=None):
+    def __init__(self, config, ckpt_path=None, devices=[], profiler=None, **kwargs):
         super().__init__()
         self.config = config
         self.profiler = profiler or PassThroughProfiler()
 
-        if self.config.MODEL_TYPE == "dino":
+        if self.config.MODEL.TYPE == "dino":
             self.model = DINO_FeatureExtractor(self.config.MODEL)
+        elif self.config.MODEL.TYPE == "dino_baseline":
+            self.model = DINO_Baseline(self.config)
+        elif self.config.MODEL.TYPE == "resnet50_baseline":
+            self.model = ResNet50Baseline(self.config)
         else:
-            raise NotImplementedError(f"Unknown matcher: {self.config.MODEL_TYPE}")
+            raise NotImplementedError(f"Unknown matcher: {self.config.MODEL.TYPE}")
 
         self.feature_subsample = self.model.output_subsample
 
@@ -35,10 +40,13 @@ class PLModule(pl.LightningModule):
 
         if ckpt_path is not None:
             state_dict = torch.load(ckpt_path, map_location="cpu")
+            if "model" not in state_dict and "model_state_dict" in state_dict:
+                state_dict["model"] = state_dict["model_state_dict"]
             self.model.load_state_dict(state_dict["model"])
             logger.info(f"Loaded pretrained weights from {ckpt_path}")
 
         if len(devices) > 1:
+            self.model = self.model.to(devices[0])
             self.model = torch.nn.DataParallel(self.model, device_ids=devices)
 
         self.n_landmarks = config.TRAIN.N_LANDMARKS  # number of landmarks to sample
@@ -47,6 +55,9 @@ class PLModule(pl.LightningModule):
         self.pos_radius = config.MODEL.POS_LANDMARK_RADIUS
         self.neg_radius = config.MODEL.NEG_LANDMARK_RADIUS
         self.landmark_embedding_method = config.MODEL.LANDMARK_EMBEDDING_METHOD
+
+        # stuff for testing
+        self.test_task = kwargs.get("test_task", None)
 
     def configure_optimizers(self):
         optim_conf = self.config.OPTIMIZER
@@ -59,11 +70,23 @@ class PLModule(pl.LightningModule):
         else:
             raise NotImplementedError(f"Unknown optimizer: {optim_conf.TYPE}")
 
+    def forward(self, imgs):
+        """Extract features from the images (BxCxHxW)."""
+        features = self.model(imgs)
+        features = F.normalize(features, p=2, dim=1)
+        return features
+
     def training_step(self, batch, batch_idx):
         return self._trainval_step(batch, batch_idx)
 
     def validation_step(self, batch, batch_idx):
         return self._trainval_step(batch, batch_idx)
+
+    def test_step(self, batch, batch_idx):
+        if self.test_task == "patch_retrieval":
+            return self._trainval_step(batch, batch_idx)
+        else:
+            raise NotImplementedError(f"Unknown test task: {self.test_task}")
 
     def _trainval_step(self, batch, batch_idx):
         imgs = batch["img"]
@@ -87,8 +110,7 @@ class PLModule(pl.LightningModule):
 
         # cannot use PyTorch Lightning's DDP because the loss function requires us to accumulate all the features from all the GPUs
         with self.profiler.profile("Feature Extraction"):
-            features = self.model(imgs)
-            features = F.normalize(features, p=2, dim=1)
+            features = self(imgs)
 
         with self.profiler.profile("Computing landmarks"):
             landmarks = self._sample_landmarks(cameras, depths, features)
