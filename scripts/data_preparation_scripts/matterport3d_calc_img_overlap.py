@@ -1,5 +1,5 @@
 import os
-import configargparse
+import argparse
 from tqdm import tqdm
 
 import numpy as np
@@ -372,7 +372,7 @@ def main(opts):
 
 
 if __name__ == "__main__":
-    parser = configargparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "--raw_dataset_dir",
         type=str,

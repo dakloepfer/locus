@@ -1,7 +1,7 @@
 """Use the triangle meshes and region_segmentations information to for each image give the semantic segmentation labels for each pixel."""
 
 import os
-import configargparse
+import argparse
 from tqdm import tqdm
 import json
 import csv
@@ -576,7 +576,7 @@ def main(opts):
 
 
 if __name__ == "__main__":
-    parser = configargparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add("-d", "--debug", action="store_true", help="debug mode", default=False)
     parser.add(
         "-i",

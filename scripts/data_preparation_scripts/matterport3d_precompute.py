@@ -1,7 +1,7 @@
 """A script to generate better depth maps than by inpainting; this first uses the 3D meshes to fill in missing values, and only then uses inpainting to fill in the rest."""
 
 import os
-import configargparse
+import argparse
 import zipfile
 from tqdm import tqdm
 
@@ -555,7 +555,7 @@ def main(opts):
 
 
 if __name__ == "__main__":
-    parser = configargparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "--raw_dataset_dir",
         type=str,
