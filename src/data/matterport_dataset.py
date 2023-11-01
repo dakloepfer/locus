@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from torchvision.transforms.functional import to_tensor
-from einops import rearrange
+from einops import rearrange, einsum
 
 from src.utils.misc import invert_se3
 
@@ -107,8 +107,10 @@ class MatterportDataset(torch.utils.data.Dataset):
                 current_intrinsics[0, 2] = (
                     float(intrinsics_line[3]) * self.downsampling_factor
                 )
+                # take into account that Matterport3D has origin in bottom left, not top left, with y-axis pointing up
                 current_intrinsics[1, 2] = (
-                    float(intrinsics_line[6]) * self.downsampling_factor
+                    self.img_height
+                    - float(intrinsics_line[6]) * self.downsampling_factor
                 )
 
             elif line.startswith("scan"):
@@ -125,6 +127,15 @@ class MatterportDataset(torch.utils.data.Dataset):
                 )
                 cam_to_world_pose = rearrange(
                     cam_to_world_pose, "(h w) -> h w", h=4, w=4
+                )
+                # camera coordinate system is z into camera, x right, y up; need to switch to x right, y down, z out of camera
+                cam_to_world_pose = einsum(
+                    cam_to_world_pose,
+                    torch.tensor(
+                        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]],
+                        dtype=torch.float,
+                    ),
+                    "i j, j k -> i k",
                 )
                 world_to_cam_pose = invert_se3(cam_to_world_pose)
 
